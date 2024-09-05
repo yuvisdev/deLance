@@ -133,7 +133,7 @@ function Login() {
             )}
 
             <div className="field">
-              <label>Email</label>
+              <label className="bg-red-100">Email</label>
               <input
                 type="text"
                 name="email"

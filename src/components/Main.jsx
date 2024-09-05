@@ -4,8 +4,11 @@ import Services from "./Services";
 import Overview from "./Overview";
 import Facility from "./Facility";
 import Footer from "./Footer";
+import { useSelector } from "react-redux";
 
 function Main() {
+  const jobs = useSelector((state) => state.jobs.jobs);
+
   const [job, setJob] = useState("");
 
   function jobQuery() {
