@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./config";
+import { toast, ToastContainer } from "react-toastify"; // Import react-toastify
+import "react-toastify/dist/ReactToastify.css"; // Import toastify CSS
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const initialValues = {
@@ -13,6 +16,9 @@ function Login() {
   const [formValues, setFormValues] = useState(initialValues);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmit, setIsSubmit] = useState(false);
+  const [username, setUsername] = useState(""); // State to store the username
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,35 +34,52 @@ function Login() {
     if (Object.keys(errors).length === 0) {
       const { email, password, username } = formValues;
 
-      if (!isSignIn) {
-        // Sign Up Logic
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: username,
+      try {
+        if (!isSignIn) {
+          // Sign Up Logic
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: username, // Store the username as full_name in Supabase
+              },
             },
-          },
-        });
+          });
 
-        if (error) {
-          console.log("Error signing up:", error.message);
+          if (error) {
+            toast.error(`Error signing up: ${error.message}`);
+          } else {
+            toast.success("Signed up successfully!");
+          }
         } else {
-          console.log("Signed up successfully!");
-        }
-      } else {
-        // Sign In Logic
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+          // Sign In Logic
+          const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (error) {
-          console.log("Error signing in:", error.message);
-        } else {
-          console.log("Signed in successfully!");
+          if (error) {
+            toast.error(`Error signing in: ${error.message}`);
+          } else {
+            toast.success("Signed in successfully!");
+
+            // Fetch the user details after successful sign-in
+            const {
+              data: { user },
+              error: fetchError,
+            } = await supabase.auth.getUser();
+            if (fetchError) {
+              toast.error(`Error fetching user data: ${fetchError.message}`);
+            } else {
+              setUsername(user.user_metadata.full_name); // Set the username from user metadata
+              console.log("Username:", user.user_metadata.full_name); // Log the username
+              navigate("/main");
+            }
+          }
         }
+      } catch (error) {
+        toast.error(`Unexpected error: ${error.message}`);
       }
     }
   };
@@ -105,7 +128,7 @@ function Login() {
 
   return (
     <>
-      <div className="container">
+      <div className="container ">
         {Object.keys(formErrors).length === 0 && isSubmit ? (
           <div className="ui message success">
             {isSignIn ? "Signed in successfully!" : "Signed up successfully!"}
@@ -115,7 +138,9 @@ function Login() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <h1>{!isSignIn ? "Sign Up" : "Sign In"}</h1>
+          <h1 className="text-center text-4xl mb-2">
+            {!isSignIn ? "Sign Up" : "Sign In"}
+          </h1>
           <div className="ui divider"></div>
           <div className="ui form">
             {!isSignIn && (
@@ -133,7 +158,7 @@ function Login() {
             )}
 
             <div className="field">
-              <label className="bg-red-100">Email</label>
+              <label>Email</label>
               <input
                 type="text"
                 name="email"
@@ -180,7 +205,11 @@ function Login() {
             {isSignIn ? "New user? Sign up" : "Already a user? Sign in"}
           </span>
         </div>
+
+        {/* Display Username if available */}
+        {username && <div>Welcome, {username}!</div>}
       </div>
+      <ToastContainer /> {/* Add the ToastContainer component to your JSX */}
     </>
   );
 }

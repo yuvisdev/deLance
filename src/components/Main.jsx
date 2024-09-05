@@ -7,7 +7,7 @@ import Footer from "./Footer";
 import { useSelector } from "react-redux";
 
 function Main() {
-  const jobs = useSelector((state) => state.jobs.jobs);
+  const userName = useSelector((state) => state.user.name);
 
   const [job, setJob] = useState("");
 
@@ -22,6 +22,7 @@ function Main() {
           World Best <span>Blockchain</span>
         </h2>
         <h2>Based Freelance Platform</h2>
+        <h3>{userName ? `Namaste, 👋 ${userName}` : ""}</h3>
 
         <div>
           <input
